@@ -22,8 +22,15 @@ rebreather.check_player = function (name)
         for idx, stack in pairs(inv:get_list("main")) do
             for _, i in ipairs(rebreather.items) do
                 if i == stack:get_name() then
-                    found = true
-                    id = idx
+                    local stack_def = stack:get_definition()
+                    -- Don't destroy rebreathers (this will find what the durability/wear is left, if we can take another use)
+                    if stack:get_wear()+(stack_def.groups.damage_per_use) < 65535 then
+                        found = true
+                        id = idx
+                        break
+                    end
+                end
+                if found then
                     break
                 end
             end
@@ -42,16 +49,16 @@ rebreather.air_player = function (name)
     local player = minetest.get_player_by_name(name)
     if player ~= nil then
         local inv = player:get_inventory()
-        local rebreather_in_hand = nil
+        local rebreather_in_inv = nil
         local at = nil
         local rc = rebreather.check_player(name)
-        rebreather_in_hand = rc.success
+        rebreather_in_inv = rc.success
         at = rc.value
-        --minetest.log("action", "[rebreather] '"..name.."' "..tostring(rebreather_in_hand).." "..tostring(at).."")
-        if rebreather_in_hand then
-            -- Obtain current item in hand, Obtain current air levels, Obtain max air levels (via Object properites)
-            local hand = inv:get_stack("main", at)
-            local def = hand:get_definition()
+        --minetest.log("action", "[rebreather] '"..name.."' "..tostring(rebreather_in_inv).." "..tostring(at).."")
+        if rebreather_in_inv then
+            -- Obtain item in inv, Obtain current air levels, Obtain max air levels (via Object properites)
+            local rebr = inv:get_stack("main", at)
+            local def = rebr:get_definition()
             local air = player:get_breath()
             local props = player:get_properties()
             local max_air = props.breath_max
@@ -62,20 +69,41 @@ rebreather.air_player = function (name)
                 minetest.log("action", "[rebreather] '"..name.."' Has "..perc.."% Air ("..air.."/"..max_air..")")
             end
             if perc <= 25 then
-                -- Update air, Damage item, Update item in hand
-                player:set_breath(max_air-1) -- Don't update to max so we quit hiding the breath bubbles.
-                hand:add_wear(def.groups.damage_per_use or 1000)
+                -- Update air, Damage item, Update item in inventory
+                player:set_breath(max_air-1) -- Don't update to max so we quit hiding the breath bubbles. (Which also triggered a regenerate)
+                rebr:add_wear(def.groups.damage_per_use or 5000)
                 if rebreather.debug then
-                    minetest.log("action", "[rebreather] '"..name.."' Used '"..hand:get_name().."' durability at "..hand:get_wear())
+                    minetest.log("action", "[rebreather] '"..name.."' Used '"..rebr:get_name().."' durability at "..rebr:get_wear())
+                else
+                    minetest.log("action", "[rebreather] '"..name.."' Used '"..rebr:get_name().."'")
                 end
-                inv:set_stack("main", at, hand)
+                inv:set_stack("main", at, rebr)
             elseif perc == 100 then
-                -- Regenerate if the air is full
-                local meta = hand:get_meta()
-                hand:add_wear(-(def.groups.damage_per_use/8) or -125)
-                inv:set_stack("main", at, hand)
-                if rebreather.debug then
-                    minetest.log("action", "[rebreather] '"..name.."' Regenerates '"..hand:get_name().."' durability at "..hand:get_wear())
+                -- Regenerate if the air is full (Regenerate all of them not just the one we were using)
+                local num_repaired = 0
+                for i, _ in pairs(inv:get_lists()) do
+                    if rebreather.debug_regeneration then
+                        minetest.log("action", "[rebreather] i="..tostring(i))
+                    end
+                    for id, stack in pairs(inv:get_list(i)) do
+                        if rebreather.debug_regeneration then
+                            minetest.log("action", "[rebreather] i="..tostring(i).." id="..tostring(id).." stack="..minetest.serialize(stack:to_table()))
+                        end
+                        for _, r in ipairs(rebreather.items) do
+                            if stack:get_name() == r and stack:get_wear() ~= 0 then
+                                if rebreather.debug_regeneration then
+                                    minetest.log("action", "[rebreather] Repaired! i="..tostring(i).." id="..tostring(id).." stack="..minetest.serialize(stack:to_table()).." Repaired!")
+                                end
+                                local stack_def = stack:get_definition()
+                                stack:add_wear(-(stack_def.groups.damage_per_use/8) or -625)
+                                inv:set_stack(i, id, stack)
+                                num_repaired = num_repaired + 1
+                            end
+                        end
+                    end
+                end
+                if num_repaired ~= 0 then
+                    minetest.log("action", "[rebreather] '"..name.."' Regenerates "..tostring(num_repaired).." rebreathers")
                 end
             end
         end

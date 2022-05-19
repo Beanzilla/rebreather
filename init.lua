@@ -4,6 +4,8 @@ rebreather = {}
 
 rebreather.version = "1.0"
 rebreather.debug = false
+rebreather.debug_regeneration = false
+rebreather.enable_builtin = true
 rebreather.modpath = minetest.get_modpath("rebreather")
 
 if minetest.get_modpath("default") then
@@ -26,7 +28,10 @@ end
 rebreather.items = {}
 
 dofile(rebreather.modpath..DIR_DELIM.."api.lua")
-dofile(rebreather.modpath..DIR_DELIM.."base_item.lua") -- A generic basic rebreather
+dofile(rebreather.modpath..DIR_DELIM.."settings.lua")
+if rebreather.enable_builtin == true then
+    dofile(rebreather.modpath..DIR_DELIM.."base_item.lua") -- Builtin rebreathers
+end
 
 local interval = 0.0 -- fire off once every second
 minetest.register_globalstep(function (delta)

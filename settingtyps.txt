@@ -1,0 +1,12 @@
+
+# Outputs extra debug information to minetest's logfile
+rebreather.debug (Debug to Logs) bool false
+
+# Outputs excess debug information specifically about the rebreather regeneration to minetest's logfile
+rebreather.debug_regeneration (Debug regeneration section to Logs) bool false
+
+# Are there the 3 pre-built rebreathers? (If false the mod becomes an API only)
+rebreather.enable_builtin (Enable Builtin Rebreathers) bool true
+
+# Can the 3 pre-built rebreathers be crafted. (If false then they can only be obtained by give or shops)
+rebreather.enable_builtin_crafting (Enable the Builtin Rebreathers Crafting) bool true
