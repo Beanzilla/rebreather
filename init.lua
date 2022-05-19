@@ -2,7 +2,7 @@
 -- We have an api for making your own rebreather items
 rebreather = {}
 
-rebreather.version = "1.0"
+rebreather.version = "1.1"
 rebreather.debug = false
 rebreather.debug_regeneration = false
 rebreather.enable_builtin = true
