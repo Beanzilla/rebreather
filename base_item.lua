@@ -16,29 +16,31 @@ if minetest.get_modpath("mcl_core") then
     gold = "mcl_core:gold_ingot"
 end
 
-minetest.register_craft({
-    output = "rebreather:steel_rebreather",
-    recipe = {
-        {wool, iron, wool},
-        {iron, empty, iron},
-        {empty, iron, empty},
-    }
-})
+if rebreather.enable_builtin_crafting == true then
+    minetest.register_craft({
+        output = "rebreather:steel_rebreather",
+        recipe = {
+            {wool, iron, wool},
+            {iron, empty, iron},
+            {empty, iron, empty},
+        }
+    })
 
-minetest.register_craft({
-    output = "rebreather:gold_rebreather",
-    recipe = {
-        {wool, gold, wool},
-        {gold, "rebreather:steel_rebreather", gold},
-        {empty, gold, empty},
-    }
-})
+    minetest.register_craft({
+        output = "rebreather:gold_rebreather",
+        recipe = {
+            {wool, gold, wool},
+            {gold, "rebreather:steel_rebreather", gold},
+            {empty, gold, empty},
+        }
+    })
 
-minetest.register_craft({
-    output = "rebreather:diamond_rebreather",
-    recipe = {
-        {wool, diamond, wool},
-        {diamond, "rebreather:gold_rebreather", diamond},
-        {empty, diamond, empty}
-    }
-})
+    minetest.register_craft({
+        output = "rebreather:diamond_rebreather",
+        recipe = {
+            {wool, diamond, wool},
+            {diamond, "rebreather:gold_rebreather", diamond},
+            {empty, diamond, empty}
+        }
+    })
+end
